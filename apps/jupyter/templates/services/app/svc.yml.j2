@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jupyter
+    service: app
+    version: "{{ jupyter_image_tag }}"
+  name: jupyter
+  namespace: "{{ project_name }}"
+spec:
+  ports:
+    - name: "{{ jupyter_app_port }}-tcp"
+      port: {{ jupyter_app_port }}
+      protocol: TCP
+      targetPort: {{ jupyter_app_port }}
+  selector:
+    app: jupyter
+    service: app
+    deploymentconfig: jupyter
+  type: ClusterIP
