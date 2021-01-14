@@ -1,0 +1,14 @@
+# Jupyter
+jupyter_host: "jupyter.{{ project_name }}.{{ domain_name }}"
+
+# -- app
+jupyter_image_name: jupyter/scipy-notebook
+jupyter_image_tag: latest
+jupyter_app_replicas: 1
+jupyter_app_port: 8888
+jupyter_app_ip_whitelist: []
+jupyter_secret_name: "jupyter-{{ jupyter_vault_checksum | default('undefined_jupyter_vault_checksum') }}"
+jupyter_app_enable_lab: "yes"
+
+# -- volumes
+jupyter_home_volume_size: 2Gi
