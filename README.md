@@ -3,6 +3,80 @@
 This repository contains sources of officially maintained Arnold applications,
 _a.k.a._ trays.
 
+## Requirements
+
+The only required dependency to work on this project is the `arnold` CLI. Check
+out [openfun/arnold](https://github.com/openfun/arnold) to install it.
+
+## Quick start for developers
+
+Set your working environment:
+
+```
+$ make .env && source .env
+```
+
+Setup a new Arnold project:
+
+```
+$ arnold -c hd-inc -e development setup
+```
+
+Edit the `group_vars/customer/hd-inc/main.yml` file to update variables values
+for this working project.
+
+Let say you want to create a new `foo` application. You should now create the
+expected application tree in the `apps` directory:
+
+```
+apps
+└── foo
+    ├── templates
+    │   ├── services
+    │   │   └── app
+    │   │       ├── configs
+    │   │       ├── dc.yml.j2
+    │   │       ├── route.yml.j2
+    │   │       ├── secret.yml.j2
+    │   │       └── svc.yml.j2
+    │   └── volumes
+    │       └── home.yml.j2
+    ├── tray.yml
+    └── vars
+        ├── all
+        │   └── main.yml
+        ├── settings.yml
+        └── vault
+            └── main.yml.j2
+
+9 directories, 9 files
+```
+
+You may now create expected application vaults _via_:
+
+```
+$ arnold -v ${PWD}/apps:/app/apps -c hd-inc -e development -a foo create_app_vaults
+```
+
+> Note the `-v ${PWD}/apps:/app/apps` option usage to override default bundled
+> applications with applications from this project.
+
+You are now ready to start an OKD cluster:
+
+```
+$ make cluster
+```
+
+Once started, it's time to deploy and test our application:
+
+```
+$ arnold -v ${PWD}/apps:/app/apps -c hd-inc -e development -a jupyter bootstrap
+```
+
+Yata!
+
+> Note that you can stop the cluster using the `make stop` command.
+
 ## Contributing
 
 Please, see the [CONTRIBUTING](CONTRIBUTING.md) file.
@@ -19,4 +93,3 @@ The code in this repository is licensed under the MIT license terms unless
 otherwise noted.
 
 Please see `LICENSE` for details.
-
