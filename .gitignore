@@ -1,3 +1,6 @@
+# Environment
+.env
+
 # Development files
 group_vars/
 openshift.local.clusterup/
