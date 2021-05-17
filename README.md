@@ -5,15 +5,19 @@ _a.k.a._ trays.
 
 ## Requirements
 
-The only required dependency to work on this project is the `arnold` CLI. Check
-out [openfun/arnold](https://github.com/openfun/arnold) to install it.
+In order to work on this project and run a local development cluster, the
+following dependencies should be installed first:
+
+- `curl`
+- `k3d`: https://k3d.io
+- `kubectl`: https://kubernetes.io/fr/docs/tasks/tools/install-kubectl/
 
 ## Quick start for developers
 
 Set your working environment:
 
 ```
-$ make .env && source .env
+$ make bootstrap && source .env
 ```
 
 Setup a new Arnold project:
@@ -55,11 +59,12 @@ apps
 You may now create expected application vaults _via_:
 
 ```
-$ arnold -v ${PWD}/apps:/app/apps -c hd-inc -e development -a foo create_app_vaults
+$ arnold -c hd-inc -e development -a foo create_app_vaults
 ```
 
-> Note the `-v ${PWD}/apps:/app/apps` option usage to override default bundled
-> applications with applications from this project.
+> Note the `arnold` command is an alias for `bin/arnold -v
+> ${PWD}/apps:/app/apps` to override default bundled applications with
+> applications from this project.
 
 You are now ready to start an OKD cluster:
 
@@ -70,7 +75,7 @@ $ make cluster
 Once started, it's time to deploy and test our application:
 
 ```
-$ arnold -v ${PWD}/apps:/app/apps -c hd-inc -e development -a jupyter bootstrap
+$ arnold -c hd-inc -e development -a jupyter bootstrap
 ```
 
 Yata!

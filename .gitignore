@@ -2,5 +2,7 @@
 .env
 
 # Development files
+bin/
 group_vars/
+k3d-storage/
 openshift.local.clusterup/
