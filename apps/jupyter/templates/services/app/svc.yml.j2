@@ -6,7 +6,7 @@ metadata:
     service: app
     version: "{{ jupyter_image_tag }}"
   name: jupyter
-  namespace: "{{ project_name }}"
+  namespace: "{{ namespace_name }}"
 spec:
   ports:
     - name: "{{ jupyter_app_port }}-tcp"
@@ -16,5 +16,5 @@ spec:
   selector:
     app: jupyter
     service: app
-    deploymentconfig: jupyter
+    deployment: jupyter
   type: ClusterIP

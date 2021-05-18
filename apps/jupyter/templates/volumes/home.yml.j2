@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: jupyter-pvc-home
-  namespace: "{{ project_name }}"
+  namespace: "{{ namespace_name }}"
   labels:
     app: jupyter
     service: app
@@ -12,3 +12,4 @@ spec:
   resources:
     requests:
       storage: {{ jupyter_home_volume_size }}
+  storageClassName: "{{ default_storage_class_rwx }}"

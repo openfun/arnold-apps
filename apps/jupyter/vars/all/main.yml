@@ -1,5 +1,5 @@
 # Jupyter
-jupyter_host: "jupyter.{{ project_name }}.{{ domain_name }}"
+jupyter_host: "jupyter.{{ namespace_name }}.{{ domain_name }}"
 
 # -- app
 jupyter_image_name: jupyter/scipy-notebook
