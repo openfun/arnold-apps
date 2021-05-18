@@ -1,0 +1,33 @@
+# CircleCI's configuration for Arnold-apps
+#
+# This base configuration is used to configure application to test in our
+# workflow
+#
+version: 2.1
+
+# This allows you to use CircleCI's dynamic configuration feature
+#
+# Nota bene: it should be activated in CircleCi's project settings
+setup: true
+
+# The continuation orb is required in order to use dynamic configuration
+orbs:
+  continuation: circleci/continuation@0.1.2
+
+jobs:
+  setup:
+    executor: continuation/default
+    steps:
+      - checkout
+      - run:
+          name: Generate config
+          command: |
+            bin/ci > pr_config.yml
+      - continuation/continue:
+          configuration_path: pr_config.yml
+
+# Our single workflow, that triggers the setup job defined above
+workflows:
+  setup:
+    jobs:
+      - setup

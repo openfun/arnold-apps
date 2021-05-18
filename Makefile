@@ -11,17 +11,14 @@ K8S_DOMAIN ?= "$(shell hostname -I | awk '{print $$1}')"
 default: help
 
 # Files rules
-bin:
-	mkdir bin
-
-bin/arnold: bin
+bin/arnold:
 	# FIXME
 	# This should be fixed once the new arnold CLI has been merged to master
 	curl -sLo"${PWD}/bin/arnold" "https://raw.githubusercontent.com/openfun/arnold/migration-to-k8s/bin/arnold"
 	# curl -Lo"${HOME}/bin/arnold" "https://raw.githubusercontent.com/openfun/arnold/master/bin/arnold"
 	chmod +x "${PWD}/bin/arnold"
 
-bin/init-cluster: bin
+bin/init-cluster:
 	# FIXME
 	# This should be fixed once the new arnold CLI has been merged to master
 	curl -sLo "${PWD}/bin/init-cluster" "https://raw.githubusercontent.com/openfun/arnold/migration-to-k8s/bin/init-cluster"
@@ -47,7 +44,7 @@ bootstrap: ## bootstrap the project
 .PHONY: bootstrap
 
 clean: ## remove temporary files and downloaded binaries
-	rm -fr .env bin
+	rm -f .env bin/arnold bin/init-cluster
 .PHONY: clean
 
 cluster: \

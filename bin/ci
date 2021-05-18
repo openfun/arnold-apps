@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+declare apps
+declare config=".circleci/apps.yml"
+declare cursor="${CIRCLE_SHA1:-HEAD}"
+declare main_branch="main"
+
+# Generate a coma-separated list of quoted app names that changed in this PR
+apps=$(
+  git whatchanged --name-only --pretty="" "origin/${main_branch}..${cursor}" apps | \
+  awk -F '/' '{print "\"" $2 "\""}' | \
+  sort -u | \
+  paste -sd ','
+)
+
+# Patch the config template to generate a custom workflow that tests only
+# changed apps
+yq eval \
+  "select(.workflows.arnold.jobs.[].test-bootstrap-app.matrix.parameters.app=[${apps}])" \
+  "${config}"

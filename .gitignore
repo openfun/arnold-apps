@@ -2,7 +2,11 @@
 .env
 
 # Development files
-bin/
-group_vars/
+bin/arnold
+bin/init-cluster
 k3d-storage/
 openshift.local.clusterup/
+
+# Test customer
+group_vars/customer/*
+!group_vars/customer/eugene
