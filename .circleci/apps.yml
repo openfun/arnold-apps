@@ -1,0 +1,152 @@
+# CircleCI's configuration for Arnold-apps
+#
+# This configuration is executed once patched by the bin/ci script
+version: 2.1
+
+
+jobs:
+
+  # Check that the git history is clean and complies with our expectations
+  lint-git:
+    docker:
+      - image: circleci/python:3.8-buster
+    working_directory: ~/fun
+
+    steps:
+      - checkout
+      - run:
+          name: Check absence of fixup commits
+          command: |
+            ! git log | grep 'fixup!'
+      - run:
+          name: Install gitlint
+          command: |
+            pip install --user gitlint
+      - run:
+          name: lint commit messages added to master
+          command: |
+            ~/.local/bin/gitlint --commits origin/main..HEAD
+
+  check-changelog:
+    # We use the machine executor, i.e. a VM, not a container
+    machine:
+      # Prevent cache-related issues
+      docker_layer_caching: false
+    working_directory: ~/fun
+
+    steps:
+      - checkout
+      - run:
+          name: Check that the CHANGELOG has been modified in the current branch
+          command: |
+            git whatchanged --name-only --pretty="" origin..HEAD | grep CHANGELOG
+
+  # Check that the CHANGELOG max line length does not exceed 80 characters
+  lint-changelog:
+    docker:
+      - image: debian:stretch
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - run:
+          name: Check CHANGELOG max line length
+          command: |
+            # Get the longuest line width (ignoring release links)
+            test $(cat CHANGELOG.md | grep -Ev "^\[.*\]: https://github.com/openfun" | wc -L) -le 80
+
+
+  # Test the bootstrap playbook on the parametrized application
+  test-bootstrap-app:
+    # We use the machine executor, i.e. a VM, not a container
+    machine:
+      # Prevent cache-related issues
+      docker_layer_caching: false
+    working_directory: ~/fun
+
+    parameters:
+      app:
+        type: string
+
+    steps:
+      - checkout
+
+      - run:
+          name: Define Environment Variable at Runtime
+          command: |
+            make .env
+            cat .env >> $BASH_ENV
+            source $BASH_ENV
+
+      - run:
+          name: Install the kubectl client and k3d
+          command: |
+            export KUBECTL_RELEASE="v1.20.2"
+            curl -Lo "${HOME}/bin/kubectl" "https://dl.k8s.io/release/${KUBECTL_RELEASE}/bin/linux/amd64/kubectl"
+            curl -Lo /tmp/kubectl.sha256 "https://dl.k8s.io/${KUBECTL_RELEASE}/bin/linux/amd64/kubectl.sha256"
+            echo "$(</tmp/kubectl.sha256) ${HOME}/bin/kubectl" | sha256sum --check
+            chmod 755 "${HOME}/bin/kubectl"
+
+            export K3D_RELEASE="v4.2.0"
+            curl -Lo "${HOME}/bin/k3d" "https://github.com/rancher/k3d/releases/download/${K3D_RELEASE}/k3d-linux-amd64"
+            curl -sL https://github.com/rancher/k3d/releases/download/${K3D_RELEASE}/sha256sum.txt | \
+              grep _dist/k3d-linux-amd64 | \
+              sed "s|_dist/k3d-linux-amd64|${HOME}/bin/k3d|" | \
+              sha256sum --check
+            chmod 755 "${HOME}/bin/k3d"
+
+      - run:
+          name: Configure sysctl limits for Elasticsearch
+          command: |
+            # Elasticsearch requires to increase this setting's default value
+            sudo sysctl -w vm/max_map_count=262144
+
+      - run:
+          name: Run local k3d cluster & configure environment
+          command: |
+            # Bootstrap the k3d cluster with the following specific settings :
+            # - use standard HTTP and HTTPS ports
+            # - pre-provision 15 volumes instead of 100
+            MINIMUM_AVAILABLE_RWX_VOLUME=15 \
+            K3D_BIND_HOST_PORT_HTTP=80 \
+            K3D_BIND_HOST_PORT_HTTPS=443 \
+              make cluster
+
+      - run:
+          name: Test the "<< parameters.app >>" application bootstrapping
+          command: |
+            # Bootstrap app
+            bin/arnold -v ${PWD}/apps:/app/apps -c eugene -e ci -a << parameters.app >> bootstrap
+
+workflows:
+  version: 2
+
+  arnold:
+    jobs:
+
+      # Quality jobs
+      - lint-git:
+          filters:
+            branches:
+              ignore: master
+            tags:
+              ignore: /.*/
+      - check-changelog:
+          filters:
+            branches:
+              ignore: master
+            tags:
+              ignore: /.*/
+      - lint-changelog:
+          filters:
+            branches:
+              ignore: master
+            tags:
+              ignore: /.*/
+
+      - test-bootstrap-app:
+          matrix:
+            parameters:
+              app: []
