@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jupyter
+  namespace: "{{ namespace_name }}"
+  labels:
+    app: jupyter
+    service: app
+    version: "{{ jupyter_image_tag }}"
+  annotations:
+    cert-manager.io/issuer: "{{ acme_issuer_name }}"
+{% if jupyter_app_ip_whitelist | length %}
+    nginx.ingress.kubernetes.io/whitelist-source-range: "{{ jupyter_app_ip_whitelist | join(',') }}"
+{% endif %}
+spec:
+  rules:
+  - host: "{{ jupyter_host }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: jupyter
+            port:
+              number: {{ jupyter_app_port }}
+        path: /
+        pathType: Prefix
+  tls:
+    - hosts:
+      - "{{ jupyter_host }}"
+      secretName: "jupyter-app-tls-{{ acme_env }}"
