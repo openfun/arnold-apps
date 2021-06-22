@@ -1,0 +1,15 @@
+# customer: {{ customer }}
+# env_type: {{ env_type }}
+
+# postgresql
+{% set postgresql_credentials = databases.postgresql | json_query("[?release=='" ~ grafana_postgresql_version ~ "'].databases | [0][?application=='grafana'].{name: name, user: user, password: password} | [0]") %}
+
+DB_NAME: {{ postgresql_credentials.name }}
+DB_USER: {{ postgresql_credentials.user }}
+DB_PASSWORD: {{ postgresql_credentials.password }}
+
+# Grafana
+GF_DATABASE_NAME: {{ postgresql_credentials.name }}
+GF_DATABASE_USER: {{ postgresql_credentials.user }}
+GF_DATABASE_PASSWORD: {{ postgresql_credentials.password }}
+# GF_SECURITY_ADMIN_PASSWORD:

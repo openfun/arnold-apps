@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: "{{ namespace_name }}"
+  name: "grafana-app-{{ prefix }}"
+  labels:
+    env_type: "{{ env_type }}"
+    customer: "{{ customer }}"
+    app: "grafana"
+    service: "app"
+    route_prefix: "{{ prefix }}"
+    route_target_service: "app"
+  annotations:
+    cert-manager.io/issuer: "{{ acme_issuer_name }}"
+{% if grafana_app_ip_whitelist | length %}
+    nginx.ingress.kubernetes.io/whitelist-source-range: "{{ grafana_app_ip_whitelist | join(',') }}"
+{% endif %}
+spec:
+  rules:
+    - host: "{{ grafana_host | blue_green_host(prefix) }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: "grafana-app-{{ prefix }}"
+                port:
+                  number: {{ grafana_app_port }}
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - "{{ grafana_host | blue_green_host(prefix) }}"
+      secretName: "grafana-app-tls-{{ prefix }}-{{ acme_env }}"

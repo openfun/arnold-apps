@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+    service: app
+    version: "{{ grafana_image_tag }}"
+    deployment_stamp: "{{ deployment_stamp }}"
+  name: "grafana-app-{{ deployment_stamp }}"
+  namespace: "{{ namespace_name }}"
+spec:
+  replicas: {{ grafana_app_replicas }}
+  selector:
+    matchLabels:
+      app: grafana
+      service: app
+      version: "{{ grafana_image_tag }}"
+      deployment: "grafana-app-{{ deployment_stamp }}"
+      deployment_stamp: "{{ deployment_stamp }}"
+  template:
+    metadata:
+      labels:
+        app: grafana
+        service: app
+        version: "{{ grafana_image_tag }}"
+        deployment: "grafana-app-{{ deployment_stamp }}"
+        deployment_stamp: "{{ deployment_stamp }}"
+    spec:
+      # Prefer running pods on different nodes for redundancy
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: deployment
+                      operator: In
+                      values:
+                        - "grafana-app-{{ deployment_stamp }}"
+                topologyKey: kubernetes.io/hostname
+{% set image_pull_secret_name = grafana_image_pull_secret_name | default(none) or default_image_pull_secret_name %}
+{% if image_pull_secret_name is not none %}
+      imagePullSecrets:
+        - name: "{{ image_pull_secret_name }}"
+{% endif %}
+      initContainers:
+        - name: init-resources
+          image: {{ grafana_fetch_resources_image_name }}:{{ grafana_fetch_resources_image_tag }}
+          imagePullPolicy: Always
+          command: {{ grafana_fetch_resources_commands }}
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grafana-resources
+      containers:
+        - name: grafana
+          image: "{{ grafana_image_name }}:{{ grafana_image_tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ grafana_app_port }}
+              name: http-grafana
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /robots.txt
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 2
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          envFrom:
+            - secretRef:
+                name: "{{ grafana_secret_name }}"
+            - configMapRef:
+                name: "grafana-app-dotenv-{{ deployment_stamp }}"
+          resources: {{ grafana_app_resources }}
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grafana-resources
+            - name: grafana-provisioning-datasources
+              mountPath: /etc/grafana/provisioning/datasources/datasources.yml
+              subPath: datasources.yml
+            - name: grafana-provisioning-dashboards
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yml
+              subPath: dashboards.yml
+      securityContext:
+        runAsUser: {{ grafana_container_uid }}
+        runAsGroup: {{ grafana_container_gid }}
+        fsGroup: {{ grafana_container_uid }}
+        fsGroupChangePolicy: "OnRootMismatch"
+      volumes:
+        - name: grafana-resources
+          emptyDir: {}  # volume that lives as long as the pod lives
+        - name: grafana-provisioning-datasources
+          configMap:
+            name: grafana-app-{{ deployment_stamp }}
+            defaultMode: 420
+            items:
+              - key: datasources.yml
+                path: datasources.yml
+        - name: grafana-provisioning-dashboards
+          configMap:
+            name: grafana-app-{{ deployment_stamp }}
+            defaultMode: 420
+            items:
+              - key: dashboards.yml
+                path: dashboards.yml
