@@ -1,0 +1,46 @@
+# Application default configuration
+
+# -- route
+grafana_host: "grafana.{{ namespace_name }}.{{ domain_name }}"
+
+# -- databases (defaults to postgresql)
+grafana_postgresql_version: "13.3"
+grafana_database_image_name: "postgres"
+grafana_database_image_tag: "13.3"
+grafana_database_host: "postgresql"
+grafana_database_port: 5432
+grafana_database_secret_name: "grafana-database-{{ grafana_vault_checksum | default('undefined_grafana_vault_checksum') }}"
+
+# -- grafana
+grafana_image_name: "grafana/grafana"
+grafana_image_tag: "latest"
+grafana_container_uid: 472
+grafana_container_gid: 0
+grafana_database_engine: "postgres"
+grafana_app_port: 3000
+grafana_app_replicas: 1
+grafana_secret_name: "grafana-{{ grafana_vault_checksum | default('undefined_grafana_vault_checksum') }}"
+grafana_app_ip_whitelist: []
+# We use an init container to fetch dashboards and other resources that need to
+# be installed in target grafana instance. You can specify a docker image and
+# commands to achieve this task.
+grafana_fetch_resources_image_name: busybox
+grafana_fetch_resources_image_tag: latest
+grafana_fetch_resources_commands: []
+# Dashboards providers
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
+grafana_dashboards_providers: []
+# Datasources providers
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#data-sources
+grafana_datasources_providers: []
+
+# -- resources requests
+grafana_app_resources:
+  requests:
+    cpu: 250m
+    memory: 750Mi
+
+grafana_postgresql_resources:
+  requests:
+    cpu: 10m
+    memory: 100Mi

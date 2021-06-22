@@ -1,0 +1,48 @@
+{% if env_type in trashable_env_types %}
+apiVersion: v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+    service: postgresql
+    version: "{{ grafana_database_image_tag }}"
+    deployment_stamp: "{{ deployment_stamp }}"
+  name: "grafana-postgresql-{{ deployment_stamp }}"
+  namespace: "{{ namespace_name }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+      service: postgresql
+      version: "{{ grafana_database_image_tag }}"
+      deployment: "grafana-postgresql-{{ deployment_stamp }}"
+      deployment_stamp: "{{ deployment_stamp }}"
+  template:
+    metadata:
+      labels:
+        app: grafana
+        service: postgresql
+        version: "{{ grafana_database_image_tag }}"
+        deployment: "grafana-postgresql-{{ deployment_stamp }}"
+        deployment_stamp: "{{ deployment_stamp }}"
+    spec:
+{% set image_pull_secret_name = grafana_database_image_pull_secret_name | default(none) or default_image_pull_secret_name %}
+{% if image_pull_secret_name is not none %}
+      imagePullSecrets:
+        - name: "{{ image_pull_secret_name }}"
+{% endif %}
+      containers:
+        - image: {{ grafana_database_image_name }}:{{ grafana_database_image_tag }}
+          name: postgresql
+          ports:
+            - containerPort: {{ grafana_database_port }}
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: "{{ grafana_database_secret_name }}"
+          resources: {{ grafana_postgresql_resources }}
+      securityContext:
+        runAsUser: {{ container_uid }}
+        runAsGroup: {{ container_gid }}
+{% endif%}

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: grafana
+    service: app
+    deployment_stamp: "{{ deployment_stamp }}"
+    service_prefix: "{{ prefix }}"
+    type: static-service
+    removable: "no"
+  name: "grafana-app-{{ prefix }}"
+  namespace: "{{ namespace_name }}"
+spec:
+  ports:
+    - name: {{ grafana_app_port }}-tcp
+      port: {{ grafana_app_port }}
+      protocol: TCP
+      targetPort: {{ grafana_app_port }}
+  selector:
+    app: grafana
+    deployment: "grafana-app-{{ deployment_stamp | default('undefined', true) }}"
+  type: ClusterIP
+
