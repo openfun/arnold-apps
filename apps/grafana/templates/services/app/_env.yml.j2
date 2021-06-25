@@ -1,0 +1,7 @@
+# Server
+GF_SERVER_ROOT_URL: "https://{{ grafana_host }}"
+GF_SERVER_ENABLE_GZIP: "true"
+
+# Database
+GF_DATABASE_TYPE: "{{ grafana_database_engine }}"
+GF_DATABASE_HOST: "grafana-{{ grafana_database_host }}-{{ deployment_stamp }}:{{ grafana_database_port }}"
