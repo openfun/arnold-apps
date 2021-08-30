@@ -12,17 +12,11 @@ default: help
 
 # Files rules
 bin/arnold:
-	# FIXME
-	# This should be fixed once the new arnold CLI has been merged to master
-	curl -sLo"${PWD}/bin/arnold" "https://raw.githubusercontent.com/openfun/arnold/migration-to-k8s/bin/arnold"
-	# curl -Lo"${HOME}/bin/arnold" "https://raw.githubusercontent.com/openfun/arnold/master/bin/arnold"
+	curl -Lo "${PWD}/bin/arnold" "https://raw.githubusercontent.com/openfun/arnold/master/bin/arnold"
 	chmod +x "${PWD}/bin/arnold"
 
 bin/init-cluster:
-	# FIXME
-	# This should be fixed once the new arnold CLI has been merged to master
-	curl -sLo "${PWD}/bin/init-cluster" "https://raw.githubusercontent.com/openfun/arnold/migration-to-k8s/bin/init-cluster"
-	# curl -Lo "${HOME}/bin/init-cluster" "https://raw.githubusercontent.com/openfun/arnold/master/bin/init-cluster"
+	curl -Lo "${PWD}/bin/init-cluster" "https://raw.githubusercontent.com/openfun/arnold/master/bin/init-cluster"
 	chmod +x "${PWD}/bin/init-cluster"
 
 .env: ## generate .env file
@@ -30,9 +24,7 @@ bin/init-cluster:
 	@echo "alias arnold='bin/arnold -v ${PWD}/apps:/app/apps'" > .env
 	@echo "export ANSIBLE_VAULT_PASSWORD=$(ANSIBLE_VAULT_PASSWORD)" >> .env
 	@echo "export K8S_CONTEXT=k3d-$(K3D_CLUSTER_NAME)" >> .env
-	# FIXME
-	# This should be fixed once the new arnold CLI has been merged to master
-	@echo "export ARNOLD_IMAGE_TAG=migration-to-k8s" >> .env
+	@echo "export ARNOLD_IMAGE_TAG=master" >> .env
 	@echo "Done, update your environment using: 'source .env'"
 
 # PHONY rules
