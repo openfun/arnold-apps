@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: keycloak
+    service: app
+    deployment_stamp: "{{ deployment_stamp }}"
+    service_prefix: "{{ prefix }}"
+    type: static-service
+    removable: "no"
+  name: "keycloak-app-{{ prefix }}"
+  namespace: "{{ namespace_name }}"
+spec:
+  ports:
+    - name: {{ keycloak_app_port }}-tcp
+      port: {{ keycloak_app_port }}
+      protocol: TCP
+      targetPort: {{ keycloak_app_port }}
+  selector:
+    app: keycloak
+    deployment: "keycloak-app-{{ deployment_stamp | default('undefined', true) }}"
+  type: ClusterIP

@@ -1,0 +1,38 @@
+# Application default configuration
+
+# -- route
+keycloak_host: "keycloak.{{ namespace_name }}.{{ domain_name }}"
+
+# -- databases (defaults to postgresql)
+keycloak_postgresql_version: "13.3"
+keycloak_database_image_name: "postgres"
+keycloak_database_image_tag: "13.3"
+keycloak_database_host: "postgresql"
+keycloak_database_port: 5432
+keycloak_database_secret_name: "keycloak-database-{{ keycloak_vault_checksum | default('undefined_keycloak_vault_checksum') }}"
+
+# -- keycloak
+keycloak_image_name: "quay.io/keycloak/keycloak"
+keycloak_image_tag: "latest"
+keycloak_database_engine: "postgres"
+keycloak_database_schema: "public"
+# Add custom JDBC parameters
+# https://github.com/keycloak/keycloak-containers/blob/master/server/README.md#specify-jdbc-parameters
+keycloak_jdbc_params: ""
+keycloak_app_port: 8080
+keycloak_app_replicas: 1
+keycloak_secret_name: "keycloak-{{ keycloak_vault_checksum | default('undefined_keycloak_vault_checksum') }}"
+keycloak_app_ip_whitelist: []
+keycloak_cache_owners_count: 1
+keycloak_cache_owners_auth_sessions_count: 1
+
+# -- resources requests
+keycloak_app_resources:
+  requests:
+    cpu: 250m
+    memory: 750Mi
+
+keycloak_postgresql_resources:
+  requests:
+    cpu: 10m
+    memory: 100Mi

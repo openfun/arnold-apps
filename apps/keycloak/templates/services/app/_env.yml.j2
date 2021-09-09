@@ -1,0 +1,14 @@
+# Configuration
+PROXY_ADDRESS_FORWARDING: "true"
+
+# Database
+DB_ADDR: "keycloak-{{ keycloak_database_host }}-{{ deployment_stamp }}:{{ keycloak_database_port }}"
+DB_SCHEMA: "{{ keycloak_database_schema }}"
+DB_VENDOR: "{{ keycloak_database_engine }}"
+JDBC_PARAMS: "{{ keycloak_jdbc_params }}"
+
+# Cluster mode
+JGROUPS_DISCOVERY_PROTOCOL: "kubernetes.KUBE_PING"
+KUBERNETES_NAMESPACE: "{{ namespace_name }}"
+CACHE_OWNERS_COUNT: "{{ keycloak_cache_owners_count }}"
+CACHE_OWNERS_AUTH_SESSIONS_COUNT: "{{ keycloak_cache_owners_auth_sessions_count }}"

@@ -1,0 +1,22 @@
+# customer: {{ customer }}
+# env_type: {{ env_type }}
+
+# postgresql
+{% set postgresql_credentials = databases.postgresql | json_query("[?release=='" ~ keycloak_postgresql_version ~ "'].databases | [0][?application=='keycloak'].{name: name, user: user, password: password} | [0]") %}
+
+POSTGRES_DB: {{ postgresql_credentials.name }}
+POSTGRES_USER: {{ postgresql_credentials.user }}
+POSTGRES_PASSWORD: {{ postgresql_credentials.password }}
+
+# Database
+DB_DATABASE: {{ postgresql_credentials.name }}
+DB_USER: {{ postgresql_credentials.user }}
+DB_PASSWORD: {{ postgresql_credentials.password }}
+
+# Admin user
+# You can define the first admin user by filling the following variables
+# KEYCLOAK_USER:
+# KEYCLOAK_PASSWORD:
+
+# Any other variable defined here will be injected as an environment variable
+# of the keycloak pod.

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: keycloak
+    service: app
+    version: "{{ keycloak_image_tag }}"
+    deployment_stamp: "{{ deployment_stamp }}"
+  name: "keycloak-app-{{ deployment_stamp }}"
+  namespace: "{{ namespace_name }}"
+spec:
+  replicas: {{ keycloak_app_replicas }}
+  selector:
+    matchLabels:
+      app: keycloak
+      service: app
+      version: "{{ keycloak_image_tag }}"
+      deployment: "keycloak-app-{{ deployment_stamp }}"
+      deployment_stamp: "{{ deployment_stamp }}"
+  template:
+    metadata:
+      labels:
+        app: keycloak
+        service: app
+        version: "{{ keycloak_image_tag }}"
+        deployment: "keycloak-app-{{ deployment_stamp }}"
+        deployment_stamp: "{{ deployment_stamp }}"
+    spec:
+      # Force running pods on different nodes for redundancy
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: deployment
+                      operator: In
+                      values:
+                        - "keycloak-app-{{ deployment_stamp }}"
+                topologyKey: kubernetes.io/hostname
+{% set image_pull_secret_name = keycloak_image_pull_secret_name | default(none) or default_image_pull_secret_name %}
+{% if image_pull_secret_name is not none %}
+      imagePullSecrets:
+        - name: "{{ image_pull_secret_name }}"
+{% endif %}
+      containers:
+        - name: keycloak
+          image: "{{ keycloak_image_name }}:{{ keycloak_image_tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ keycloak_app_port }}
+              name: http-keycloak
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /auth/realms/master
+              port: {{ keycloak_app_port }}
+          livenessProbe:
+            httpGet:
+              path: /auth/realms/master
+              port: {{ keycloak_app_port }}
+            initialDelaySeconds: 60
+          env:
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: "{{ keycloak_secret_name }}"
+            - configMapRef:
+                name: "keycloak-app-dotenv-{{ deployment_stamp }}"
+          resources: {{ keycloak_app_resources }}
