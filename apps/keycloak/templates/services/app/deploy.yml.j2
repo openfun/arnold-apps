@@ -61,9 +61,6 @@ spec:
               path: /auth/realms/master
               port: {{ keycloak_app_port }}
             initialDelaySeconds: 60
-          env:
-            - name: PROXY_ADDRESS_FORWARDING
-              value: "true"
           envFrom:
             - secretRef:
                 name: "{{ keycloak_secret_name }}"
