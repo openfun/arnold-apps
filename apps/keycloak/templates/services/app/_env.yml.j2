@@ -10,5 +10,6 @@ JDBC_PARAMS: "{{ keycloak_jdbc_params }}"
 # Cluster mode
 JGROUPS_DISCOVERY_PROTOCOL: "kubernetes.KUBE_PING"
 KUBERNETES_NAMESPACE: "{{ namespace_name }}"
+KUBERNETES_LABELS: "deployment_stamp={{ deployment_stamp }}"
 CACHE_OWNERS_COUNT: "{{ keycloak_cache_owners_count }}"
 CACHE_OWNERS_AUTH_SESSIONS_COUNT: "{{ keycloak_cache_owners_auth_sessions_count }}"
