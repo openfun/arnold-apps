@@ -8,8 +8,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+## [1.0.0] - 2021-12-03
+
 ### Added
 
-- Add Keycloak 14.0
+- First Keycloak release
 
-[Unreleased]: https://github.com/openfun/arnold-apps/
+[Unreleased]: https://github.com/openfun/arnold-apps/compare/keycloak-v1.0.0...main
+[1.0.0]: https://github.com/openfun/arnold-apps/compare/74e2e72...keycloak-v1.0.0
