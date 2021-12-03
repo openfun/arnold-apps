@@ -8,7 +8,9 @@ metadata:
     service: app
     version: "{{ jupyter_image_tag }}"
   annotations:
+{% if prefix in acme_enabled_route_prefix %}
     cert-manager.io/issuer: "{{ acme_issuer_name }}"
+{% endif %}
 {% if jupyter_app_ip_whitelist | length %}
     nginx.ingress.kubernetes.io/whitelist-source-range: "{{ jupyter_app_ip_whitelist | join(',') }}"
 {% endif %}

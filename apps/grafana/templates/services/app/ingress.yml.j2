@@ -11,7 +11,9 @@ metadata:
     route_prefix: "{{ prefix }}"
     route_target_service: "app"
   annotations:
+{% if prefix in acme_enabled_route_prefix %}
     cert-manager.io/issuer: "{{ acme_issuer_name }}"
+{% endif %}
 {% if grafana_app_ip_whitelist | length %}
     nginx.ingress.kubernetes.io/whitelist-source-range: "{{ grafana_app_ip_whitelist | join(',') }}"
 {% endif %}
