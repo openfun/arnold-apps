@@ -8,8 +8,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+## [1.0.0] - 2021-12-03
+
 ### Added
 
-- First grafana 8.0.3 release
+- First Grafana release
 
-[Unreleased]: https://github.com/openfun/arnold-apps/
+[Unreleased]: https://github.com/openfun/arnold-apps/compare/grafana-v1.0.0...main
+[1.0.0]: https://github.com/openfun/arnold-apps/compare/74e2e72...grafana-v1.0.0
