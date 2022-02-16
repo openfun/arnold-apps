@@ -28,10 +28,11 @@ jobs:
             ~/.local/bin/gitlint --commits origin/main..HEAD
 
   check-changelog:
-    # We use the machine executor, i.e. a VM, not a container
-    machine:
-      # Prevent cache-related issues
-      docker_layer_caching: false
+    docker:
+      - image: circleci/buildpack-deps:buster-scm
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
     working_directory: ~/fun
 
     steps:
@@ -62,6 +63,7 @@ jobs:
   test-bootstrap-app:
     # We use the machine executor, i.e. a VM, not a container
     machine:
+      image: ubuntu-2004:202201-02
       # Prevent cache-related issues
       docker_layer_caching: false
     working_directory: ~/fun
