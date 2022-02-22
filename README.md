@@ -26,6 +26,10 @@ Setup a new Arnold project:
 $ arnold -c hd-inc -e development setup
 ```
 
+> Note the `arnold` command is an alias for `bin/arnold -v
+> ${PWD}/apps:/app/apps` to override default bundled applications with
+> applications from this project.
+
 Edit the `group_vars/customer/hd-inc/main.yml` file to update variables values
 for this working project.
 
@@ -62,10 +66,6 @@ You may now create expected application vaults _via_:
 $ arnold -c hd-inc -e development -a foo create_app_vaults
 ```
 
-> Note the `arnold` command is an alias for `bin/arnold -v
-> ${PWD}/apps:/app/apps` to override default bundled applications with
-> applications from this project.
-
 You are now ready to start an OKD cluster:
 
 ```
@@ -75,7 +75,7 @@ $ make cluster
 Once started, it's time to deploy and test our application:
 
 ```
-$ arnold -c hd-inc -e development -a jupyter bootstrap
+$ arnold -c hd-inc -e development -a foo bootstrap
 ```
 
 Yata!
