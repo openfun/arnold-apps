@@ -25,6 +25,7 @@ bin/init-cluster:
 	@echo "export ANSIBLE_VAULT_PASSWORD=$(ANSIBLE_VAULT_PASSWORD)" >> .env
 	@echo "export K8S_CONTEXT=k3d-$(K3D_CLUSTER_NAME)" >> .env
 	@echo "export ARNOLD_IMAGE_TAG=master" >> .env
+	@echo "export K8S_DOMAIN=$(K8S_DOMAIN)" >> .env
 	@echo "Done, update your environment using: 'source .env'"
 
 # PHONY rules

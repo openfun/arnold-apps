@@ -1,3 +1,11 @@
 metadata:
   name: etherpad
   version: latest
+tests:
+  - type: route
+    accept_header: "text/html"
+    content: "<title>${namespace} etherpad</title>"
+    port: 80
+    protocol: http
+    service: etherpad
+    url_path: "/"
