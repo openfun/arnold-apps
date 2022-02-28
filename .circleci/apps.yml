@@ -59,8 +59,8 @@ jobs:
             test $(cat CHANGELOG.md | grep -Ev "^\[.*\]: https://github.com/openfun" | wc -L) -le 80
 
 
-  # Test the bootstrap playbook on the parametrized application
-  test-bootstrap-app:
+  # Test the application
+  test-app:
     # We use the machine executor, i.e. a VM, not a container
     machine:
       image: ubuntu-2004:202201-02
@@ -100,6 +100,20 @@ jobs:
             chmod 755 "${HOME}/bin/k3d"
 
       - run:
+          name: Install a recent yq release
+          command: |
+            export YQ_RELEASE="v4.21.1"
+            curl -Lo /tmp/yq_linux_amd64 "https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/yq_linux_amd64"
+            curl -Lo /tmp/checksums "https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/checksums"
+            curl -Lo /tmp/checksums_hashes_order "https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/checksums_hashes_order"
+            curl -Lo /tmp/extract-checksum.sh "https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/extract-checksum.sh"
+            cd /tmp && \
+              chmod +x extract-checksum.sh && \
+              ./extract-checksum.sh SHA-256 yq_linux_amd64 | awk '{print $2" "$1}' | sha256sum --check
+            mv yq_linux_amd64 "${HOME}/bin/yq" && \
+              chmod 755 "${HOME}/bin/yq"
+
+      - run:
           name: Configure sysctl limits for Elasticsearch
           command: |
             # Elasticsearch requires to increase this setting's default value
@@ -121,6 +135,17 @@ jobs:
           command: |
             # Bootstrap app
             bin/arnold -v ${PWD}/apps:/app/apps -c eugene -e ci -a << parameters.app >> bootstrap
+
+      - run:
+          name: Switch the "<< parameters.app >>" application
+          command: |
+            # Bootstrap app
+            bin/arnold -v ${PWD}/apps:/app/apps -c eugene -e ci -a << parameters.app >> switch
+
+      - run:
+          name: Test the "<< parameters.app >>" deployment
+          command: |
+            bin/ci route << parameters.app >>
 
 workflows:
   version: 2
@@ -148,7 +173,7 @@ workflows:
             tags:
               ignore: /.*/
 
-      - test-bootstrap-app:
+      - test-app:
           matrix:
             parameters:
               app: []

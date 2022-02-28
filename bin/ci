@@ -1,20 +1,232 @@
 #!/usr/bin/env bash
 
-declare apps
-declare config=".circleci/apps.yml"
-declare cursor="${CIRCLE_SHA1:-HEAD}"
-declare main_branch="main"
+set -eo pipefail
 
-# Generate a coma-separated list of quoted app names that changed in this PR
-apps=$(
-  git whatchanged --name-only --pretty="" "origin/${main_branch}..${cursor}" apps | \
-  awk -F '/' '{print "\"" $2 "\""}' | \
-  sort -u | \
-  paste -sd ','
-)
+declare -i MAX_TRIES=20
+declare TEMP_FILE_PREFIX
+TEMP_FILE_PREFIX=$(mktemp -u)
 
-# Patch the config template to generate a custom workflow that tests only
-# changed apps
-yq eval \
-  "select(.workflows.arnold.jobs.[].test-bootstrap-app.matrix.parameters.app=[${apps}])" \
-  "${config}"
+
+# usage: display usage with the appropriate exit code
+#
+# usage: usage [EXIT_CODE]
+#
+#   EXIT_CODE: program exit code (default: 0)
+function usage(){
+
+    declare -i exit_code="${1:-0}"
+
+    echo "Usage: ci [OPTIONS] COMMAND
+
+OPTIONS:
+
+  -h, --help
+         print this message
+
+COMMANDS:
+
+  config    generate configuration file
+  route     test target service route response
+"
+    # shellcheck disable=SC2086
+    exit ${exit_code}
+}
+
+# usage: display route command usage with the appropriate exit code
+#
+# usage: _route_usage [EXIT_CODE]
+#
+#   EXIT_CODE: program exit code (default: 0)
+function _route_usage(){
+
+    declare -i exit_code="${1:-0}"
+
+    echo "Usage: ci route [OPTIONS] APP
+
+OPTIONS:
+
+  -h, --help
+         print this message
+  -m, --max-tries
+         number of attempts before considering failure (default: ${MAX_TRIES})
+  -p, --prefix
+         application route prefix (default: ${route_prefix})
+
+APP:
+
+The application name (as in the 'apps' folder)
+"
+    # shellcheck disable=SC2086
+    exit ${exit_code}
+}
+
+# ---- Utils ----
+
+# _try: execute a command until it succeeds or MAX_TRIES attempts have been tried
+#
+# usage: _try COMMAND TEST
+function _try(){
+
+  declare -i pause=4
+  declare -i try
+  declare cmd="${1}"
+  declare test_="${2}"
+
+  for try in $(seq "${MAX_TRIES}"); do
+    echo -en "\\r cmd: ${cmd}"
+
+    if (eval "${cmd}" 2> "${TEMP_FILE_PREFIX}.err" > "${TEMP_FILE_PREFIX}.out") && \
+       (eval "${test_}" &> /dev/null) ; then
+      echo -e " >>> Success 🎉"
+      return
+    else
+      printf " >>> Try: %03d / %03d" "${try}" ${MAX_TRIES}
+      sleep ${pause}
+    fi
+  done
+
+  echo -e "\\nMax tries reached...\\n"
+
+  echo "DEBUG info:"
+  echo ">>> STDOUT"
+  cat "${TEMP_FILE_PREFIX}.out"
+  echo ">>> STDERR"
+  cat "${TEMP_FILE_PREFIX}.err"
+
+  exit 10
+}
+
+
+# ---- Commands ----
+
+# config: generate CircleCI configuration file given git changes
+function config(){
+
+  declare apps
+  declare config=".circleci/apps.yml"
+  declare cursor="${CIRCLE_SHA1:-HEAD}"
+  declare main_branch="main"
+
+  # Generate a coma-separated list of quoted app names that changed in this PR
+  apps=$(
+    git whatchanged --name-only --pretty="" "origin/${main_branch}..${cursor}" apps | \
+    awk -F '/' '{print "\"" $2 "\""}' | \
+    sort -u | \
+    paste -sd ','
+  )
+
+  # Patch the config template to generate a custom workflow that tests only
+  # changed apps
+  yq \
+    ".workflows.arnold.jobs.[3].test-app.matrix.parameters.app = [${apps}]" \
+    "${config}"
+}
+
+# Test application route
+function route(){
+
+  declare -i index
+  declare -i n_routes=0
+  declare -i port=80
+  declare accept_header="text/html"
+  declare cmd
+  # shellcheck disable=SC2034
+  declare app
+  declare content
+  declare namespace="ci-eugene"
+  declare protocol="http"
+  declare route_prefix="current"
+  declare route_selector
+  declare routes_selector='.tests.[] | select(.type == "route")'
+  declare service
+  declare subdomain
+  declare test_
+  declare tray_file
+  declare url
+  declare url_path="/"
+
+  OPTS=$(getopt -o "p:m:h" --long "prefix:,max-tries:,help" -n "route" -- "$@")
+  eval set -- "$OPTS"
+
+  # Parse options to the `ci` command
+  while true; do
+      case "${1}" in
+          -h|--help)
+              _route_usage 0;;
+          -m|--max-tries)
+              MAX_TRIES=${2}
+              shift 2;;
+          -p|--prefix)
+              route_prefix="${2}"
+              shift 2;;
+          --)
+              shift; break;;
+          *)
+              echo "Invalid option, see usage (-h)." 1>&2
+              exit 1;;
+      esac
+  done
+
+  if [[ -z "${1}" ]]; then
+    _route_usage 1;
+  fi
+
+  # Check expected application tray file
+  app="${1}"
+  tray_file="apps/${app}/tray.yml"
+  if [[ ! -f "${tray_file}" ]]; then
+    echo "No tray file file found for application ${app}. Expected: ${tray_file}"
+    exit 11
+  fi
+
+  if [[ "${route_prefix}" != "current" ]]; then
+    subdomain="${route_prefix}."
+  fi
+
+  # Get route test parameters
+  n_routes=$(yq "${routes_selector} | .service" "${tray_file}" | wc -l)
+  n_routes=$((n_routes-1))
+  # Test every route
+  for index in $(seq 0 ${n_routes}); do
+    route_selector="${routes_selector} | split_doc | select(document_index == ${index})"
+    while read -r key value; do
+      eval "${key/:/}=${value}"
+    done < <(yq "${route_selector}" "${tray_file}")
+
+    url="${protocol}://${subdomain}${service}.${namespace}.${K8S_DOMAIN}.nip.io:${port}${url_path}"
+    cmd="curl -vLk --header 'Accept: ${accept_header}' ${url}"
+    # shellcheck disable=SC2016
+    test_="grep 'HTTP/2 200' ${TEMP_FILE_PREFIX}.err && grep '${content}' ${TEMP_FILE_PREFIX}.out"
+
+    echo -e "Testing service ${service} route '${index}' (content: ${content})"
+
+    _try "${cmd}" "${test_}"
+  done
+}
+
+
+# ---- Main ----
+
+OPTS=$(getopt -o "h" --long "help" -n "ci" -- "$@")
+eval set -- "$OPTS"
+
+# Parse options to the `ci` command
+while true; do
+    case "${1}" in
+        -h|--help)
+            usage 0;;
+        --)
+            shift; break;;
+        *)
+            echo "Invalid option, see usage (-h)." 1>&2
+            exit 1;;
+    esac
+done
+
+# Print usage if no COMMAND has been passed
+if [[ -z "${1}" ]]; then
+  usage 1
+fi
+
+# Perform action
+"$@"

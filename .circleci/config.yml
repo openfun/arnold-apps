@@ -19,10 +19,25 @@ jobs:
     executor: continuation/default
     steps:
       - checkout
+
+      - run:
+          name: Install a recent yq release
+          command: |
+            export YQ_RELEASE="v4.21.1"
+            curl -Lo /tmp/yq_linux_amd64 "https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/yq_linux_amd64"
+            curl -Lo /tmp/checksums "https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/checksums"
+            curl -Lo /tmp/checksums_hashes_order "https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/checksums_hashes_order"
+            curl -Lo /tmp/extract-checksum.sh "https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/extract-checksum.sh"
+            cd /tmp && \
+              chmod +x extract-checksum.sh && \
+              ./extract-checksum.sh SHA-256 yq_linux_amd64 | awk '{print $2" "$1}' | sha256sum --check
+            mv yq_linux_amd64 "${HOME}/bin/yq" && \
+              chmod 755 "${HOME}/bin/yq"
+
       - run:
           name: Generate config
           command: |
-            bin/ci > pr_config.yml
+            bin/ci config > pr_config.yml
       - continuation/continue:
           configuration_path: pr_config.yml
 
