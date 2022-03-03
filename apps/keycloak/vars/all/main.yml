@@ -13,7 +13,8 @@ keycloak_database_secret_name: "keycloak-database-{{ keycloak_vault_checksum | d
 
 # -- keycloak
 keycloak_image_name: "quay.io/keycloak/keycloak"
-keycloak_image_tag: "latest"
+# FIXME
+keycloak_image_tag: "legacy"
 keycloak_database_engine: "postgres"
 keycloak_database_schema: "public"
 # Add custom JDBC parameters
