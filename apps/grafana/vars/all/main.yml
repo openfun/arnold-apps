@@ -33,6 +33,13 @@ grafana_dashboards_providers: []
 # Datasources providers
 # https://grafana.com/docs/grafana/latest/administration/provisioning/#data-sources
 grafana_datasources_providers: []
+# Hooks
+# If activated, hooks allow to modify provided dashboards or datasources
+# (post deployment).
+grafana_activate_hooks: false
+grafana_hooks_image_name: "fundocker/curl-jq"
+grafana_hooks_image_tag: latest
+grafana_hooks_commands: []
 
 # -- resources requests
 grafana_app_resources:
@@ -41,6 +48,11 @@ grafana_app_resources:
     memory: 750Mi
 
 grafana_postgresql_resources:
+  requests:
+    cpu: 10m
+    memory: 100Mi
+
+grafana_hooks_resources:
   requests:
     cpu: 10m
     memory: 100Mi
