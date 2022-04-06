@@ -8,6 +8,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+## [1.1.0] - 2022-04-12
+
 ### Added
 
 - Implement support for post-deployment hook scripts as sidecar containers
@@ -18,5 +20,6 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - First Grafana release
 
-[Unreleased]: https://github.com/openfun/arnold-apps/compare/grafana-v1.0.0...main
+[Unreleased]: https://github.com/openfun/arnold-apps/compare/grafana-v1.1.0...main
+[1.1.0]: https://github.com/openfun/arnold-apps/compare/grafana-v1.0.0...grafana-v1.1.0
 [1.0.0]: https://github.com/openfun/arnold-apps/compare/74e2e72...grafana-v1.0.0
