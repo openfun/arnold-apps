@@ -93,6 +93,21 @@ spec:
             - name: grafana-provisioning-dashboards
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yml
               subPath: dashboards.yml
+{% if grafana_activate_hooks %}
+        - name: hooks
+          image: "{{ grafana_hooks_image_name }}:{{ grafana_hooks_image_tag }}"
+          imagePullPolicy: Always
+          command: {{ grafana_hooks_commands }}
+          envFrom:
+            - secretRef:
+                name: "{{ grafana_secret_name }}"
+            - configMapRef:
+                name: "grafana-app-dotenv-{{ deployment_stamp }}"
+          resources: {{ grafana_hooks_resources }}
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grafana-resources
+{% endif %}
       securityContext:
         runAsUser: {{ grafana_container_uid }}
         runAsGroup: {{ grafana_container_gid }}

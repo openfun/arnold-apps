@@ -8,6 +8,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Implement support for post-deployment hook scripts as sidecar containers
+
 ## [1.0.0] - 2021-12-03
 
 ### Added
