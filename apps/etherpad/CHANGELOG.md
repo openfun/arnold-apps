@@ -8,9 +8,12 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-02-20
+
 ### Added
 
 - First Etherpad release
 - Define ingress class name
 
-[Unreleased]: https://github.com/openfun/arnold-apps/
+[Unreleased]: https://github.com/openfun/arnold-apps/compare/etherpad-v1.1.0...main
+[1.0.0]: https://github.com/openfun/arnold-apps/compare/74e2e72...etherpad-v1.0.0
