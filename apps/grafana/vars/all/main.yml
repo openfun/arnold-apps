@@ -2,6 +2,7 @@
 
 # -- route
 grafana_host: "grafana.{{ namespace_name }}.{{ domain_name }}"
+grafana_ingress_class_name: "{{ default_ingress_class_name }}"
 
 # -- databases (defaults to postgresql)
 grafana_postgresql_version: "13.3"
