@@ -91,12 +91,10 @@ jobs:
             echo "$(</tmp/kubectl.sha256) ${HOME}/bin/kubectl" | sha256sum --check
             chmod 755 "${HOME}/bin/kubectl"
 
-            export K3D_RELEASE="v4.4.8"
+            export K3D_RELEASE="v5.4.6"
             curl -Lo "${HOME}/bin/k3d" "https://github.com/k3d-io/k3d/releases/download/${K3D_RELEASE}/k3d-linux-amd64"
-            curl -sL https://github.com/k3d-io/k3d/releases/download/${K3D_RELEASE}/sha256sum.txt | \
-              grep _dist/k3d-linux-amd64 | \
-              sed "s|_dist/k3d-linux-amd64|${HOME}/bin/k3d|" | \
-              sha256sum --check
+            # FIXME
+            # Removed checksum checking: https://github.com/k3d-io/k3d/discussions/1037
             chmod 755 "${HOME}/bin/k3d"
 
       - run:
