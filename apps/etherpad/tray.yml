@@ -1,6 +1,6 @@
 metadata:
   name: etherpad
-  version: latest
+  version: 1.0.0
 tests:
   - type: route
     accept_header: "text/html"
