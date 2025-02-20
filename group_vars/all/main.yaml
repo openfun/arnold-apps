@@ -1,0 +1,4 @@
+# Ingress class name
+# A default ingress class name is not necessarily defined in a k8s cluster.
+# We can specify which one to use by defining the ingressClassName in the Ingress spec
+default_ingress_class_name: "nginx"

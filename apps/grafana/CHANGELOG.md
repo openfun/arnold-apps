@@ -8,6 +8,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Define ingress class name
+
 ## [1.1.0] - 2022-04-12
 
 ### Added

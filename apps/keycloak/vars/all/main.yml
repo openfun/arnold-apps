@@ -2,6 +2,7 @@
 
 # -- route
 keycloak_host: "keycloak.{{ namespace_name }}.{{ domain_name }}"
+keycloak_ingress_class_name: "{{ default_ingress_class_name }}"
 
 # -- databases (defaults to postgresql)
 keycloak_postgresql_version: "13.3"
